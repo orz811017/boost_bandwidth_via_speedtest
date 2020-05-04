@@ -23,6 +23,7 @@ import math
 import errno
 import signal
 import socket
+import time
 import timeit
 import datetime
 import platform
@@ -1930,71 +1931,14 @@ def shell():
 
     printer('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
             '%(latency)s ms' % results.server, quiet)
-
-    if args.download:
-        printer('Testing download speed', quiet,
-                end=('', '\n')[bool(debug)])
-        speedtest.download(
-            callback=callback,
-            threads=(None, 1)[args.single]
-        )
-        printer('Download: %0.2f M%s/s' %
-                ((results.download / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0]),
-                quiet)
-    else:
-        printer('Skipping download test', quiet)
-
-    if args.upload:
-        printer('Testing upload speed', quiet,
-                end=('', '\n')[bool(debug)])
-        speedtest.upload(
-            callback=callback,
-            pre_allocate=args.pre_allocate,
-            threads=(None, 1)[args.single]
-        )
-        printer('Upload: %0.2f M%s/s' %
-                ((results.upload / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0]),
-                quiet)
-    else:
-        printer('Skipping upload test', quiet)
-
-    printer('Results:\n%r' % results.dict(), debug=True)
-
-    if not args.simple and args.share:
-        results.share()
-
-    if args.simple:
-        printer('Ping: %s ms\nDownload: %0.2f M%s/s\nUpload: %0.2f M%s/s' %
-                (results.ping,
-                 (results.download / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0],
-                 (results.upload / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0]))
-    elif args.csv:
-        printer(results.csv(delimiter=args.csv_delimiter))
-    elif args.json:
-        printer(results.json())
-
-    if args.share and not machine_format:
-        printer('Share results: %s' % results.share())
-
+    return results.ping
 
 def main():
-    try:
-        shell()
-    except KeyboardInterrupt:
-        printer('\nCancelling...', error=True)
-    except (SpeedtestException, SystemExit):
-        e = get_exception()
-        # Ignore a successful exit, or argparse exit
-        if getattr(e, 'code', 1) not in (0, 2):
-            msg = '%s' % e
-            if not msg:
-                msg = '%r' % e
-            raise SystemExit('ERROR: %s' % msg)
-
+   while True:
+       ping = shell()
+       if ping > 100:
+           continue
+       time.sleep(60)
 
 if __name__ == '__main__':
     main()
