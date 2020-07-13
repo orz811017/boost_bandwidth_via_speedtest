@@ -1937,8 +1937,9 @@ def main():
    while True:
        ping = shell()
        if ping > 100:
-           continue
-       time.sleep(60)
+            continue
+       else:
+            break
 
 if __name__ == '__main__':
     main()
