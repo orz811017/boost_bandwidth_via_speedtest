@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
 import os
 import re
 import csv
@@ -1820,7 +1821,7 @@ def printer(string, quiet=False, debug=False, error=False, **kwargs):
         print_(out, **kwargs)
 
 
-def shell():
+def shell(quiet=False):
     """Run the full speedtest.net test"""
 
     global DEBUG
@@ -1829,44 +1830,6 @@ def shell():
     signal.signal(signal.SIGINT, ctrl_c(shutdown_event))
 
     args = parse_args()
-
-    # Print the version and exit
-    if args.version:
-        version()
-
-    if not args.download and not args.upload:
-        raise SpeedtestCLIError('Cannot supply both --no-download and '
-                                '--no-upload')
-
-    if len(args.csv_delimiter) != 1:
-        raise SpeedtestCLIError('--csv-delimiter must be a single character')
-
-    if args.csv_header:
-        csv_header(args.csv_delimiter)
-
-    validate_optional_args(args)
-
-    debug = getattr(args, 'debug', False)
-    if debug == 'SUPPRESSHELP':
-        debug = False
-    if debug:
-        DEBUG = True
-
-    if args.simple or args.csv or args.json:
-        quiet = True
-    else:
-        quiet = False
-
-    if args.csv or args.json:
-        machine_format = True
-    else:
-        machine_format = False
-
-    # Don't set a callback if we are running quietly
-    if quiet or debug:
-        callback = do_nothing
-    else:
-        callback = print_dots(shutdown_event)
 
     printer('Retrieving speedtest.net configuration...', quiet)
     try:
@@ -1878,25 +1841,6 @@ def shell():
     except (ConfigRetrievalError,) + HTTP_ERRORS:
         printer('Cannot retrieve speedtest configuration', error=True)
         raise SpeedtestCLIError(get_exception())
-
-    if args.list:
-        try:
-            speedtest.get_servers()
-        except (ServersRetrievalError,) + HTTP_ERRORS:
-            printer('Cannot retrieve speedtest server list', error=True)
-            raise SpeedtestCLIError(get_exception())
-
-        for _, servers in sorted(speedtest.servers.items()):
-            for server in servers:
-                line = ('%(id)5s) %(sponsor)s (%(name)s, %(country)s) '
-                        '[%(d)0.2f km]' % server)
-                try:
-                    printer(line)
-                except IOError:
-                    e = get_exception()
-                    if e.errno != errno.EPIPE:
-                        raise
-        sys.exit(0)
 
     printer('Testing from %(isp)s (%(ip)s)...' % speedtest.config['client'],
             quiet)
@@ -1929,8 +1873,8 @@ def shell():
 
     results = speedtest.results
 
-    printer('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
-            '%(latency)s ms' % results.server, quiet)
+    print('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
+            '%(latency)s ms' % results.server)
     return results.ping
 
 def main():
