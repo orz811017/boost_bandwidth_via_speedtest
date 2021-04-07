@@ -1839,8 +1839,8 @@ def shell(quiet=False):
             secure=args.secure
         )
     except (ConfigRetrievalError,) + HTTP_ERRORS:
-        printer('Cannot retrieve speedtest configuration', error=True)
-        raise SpeedtestCLIError(get_exception())
+        printer('Cannot retrieve speedtest configuration')
+        return sys.maxint
 
     printer('Testing from %(isp)s (%(ip)s)...' % speedtest.config['client'],
             quiet)
@@ -1850,19 +1850,18 @@ def shell(quiet=False):
         try:
             speedtest.get_servers(servers=args.server, exclude=args.exclude)
         except NoMatchedServers:
-            raise SpeedtestCLIError(
-                'No matched servers: %s' %
-                ', '.join('%s' % s for s in args.server)
-            )
-        except (ServersRetrievalError,) + HTTP_ERRORS:
-            printer('Cannot retrieve speedtest server list', error=True)
-            raise SpeedtestCLIError(get_exception())
-        except InvalidServerIDType:
-            raise SpeedtestCLIError(
-                '%s is an invalid server type, must '
-                'be an int' % ', '.join('%s' % s for s in args.server)
-            )
+            printer('NoMatchedServers', quiet)
 
+            return sys.maxint
+        except (ServersRetrievalError,) + HTTP_ERRORS:
+            printer('Cannot retrieve speedtest server list', quiet)
+            return sys.maxint
+        except InvalidServerIDType:
+            printer(
+                '%s is an invalid server type, must '
+                'be an int' % ', '.join('%s' % s for s in args.server), quiet
+            )
+            return sys.maxint
         if args.server and len(args.server) == 1:
             printer('Retrieving information for the selected server...', quiet)
         else:
@@ -1878,12 +1877,9 @@ def shell(quiet=False):
     return results.ping
 
 def main():
-   while True:
+    ping = shell()
+    while ping > 100 and len(sys.argv) == 2:
        ping = shell()
-       if ping > 100:
-            continue
-       else:
-            break
 
 if __name__ == '__main__':
     main()
