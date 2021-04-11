@@ -1878,8 +1878,10 @@ def shell(quiet=False):
 
 def main():
     ping = shell()
-    while ping > 100 and len(sys.argv) == 2:
-       ping = shell()
+    while ping > 100 or len(sys.argv) == 1:
+        if (len(sys.argv) == 1):
+            time.sleep(120)
+        ping = shell()
 
 if __name__ == '__main__':
     main()
