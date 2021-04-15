@@ -7,26 +7,26 @@ Breaks the bandwidth limitation of Far___Tone.
 ```bash
 pkg upgrade
 ```
-and confirm (press y)
+and confirm (press y).
 
 ## Dependency
 ```bash
 pkg install python git
 ```
-and confirm (press y)
+and confirm (press y).
 
 ## Installation
 1. Clone the repository
 ```bash
 git clone https://github.com/orz811017/boost_bandwidth_via_speedtest.git
 ```
-1. Check if it's cloned successfully (optional)
+2. Check if it's cloned successfully (optional).
 ```bash
 ls
 ```
 Showing `boost_bandwidth_via_speedtest` indicates that cloning in successful.
 
-1. Install it to the system
+3. Install it to the system.
 ```bash
 cd boost_bandwidth_via_speedtest && python setup.py install
 ```
