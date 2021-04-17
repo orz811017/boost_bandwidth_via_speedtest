@@ -19,7 +19,6 @@ import sys
 import os
 import re
 import csv
-import sys
 import math
 import errno
 import signal
@@ -39,7 +38,7 @@ except ImportError:
     GZIP_BASE = object
 
 __version__ = '2.1.2'
-
+repeatFlag = True
 
 class FakeShutdownEvent(object):
     """Class to fake a threading.Event.isSet so that users of this module
@@ -1773,6 +1772,7 @@ def parse_args():
                         help='Show the version number and exit')
     parser.add_argument('--debug', action='store_true',
                         help=ARG_SUPPRESS, default=ARG_SUPPRESS)
+    parser.add_argument('--no-repeat', dest = 'no_repeat', action='store_true', help = "Don't repeat endless forloop")
 
     options = parser.parse_args()
     if isinstance(options, tuple):
@@ -1824,12 +1824,15 @@ def printer(string, quiet=False, debug=False, error=False, **kwargs):
 def shell(quiet=False):
     """Run the full speedtest.net test"""
 
-    global DEBUG
+    global DEBUG, repeatFlag
     shutdown_event = threading.Event()
 
     signal.signal(signal.SIGINT, ctrl_c(shutdown_event))
 
     args = parse_args()
+
+    if args.no_repeat:
+        repeatFlag = False
 
     printer('Retrieving speedtest.net configuration...', quiet)
     try:
@@ -1840,7 +1843,7 @@ def shell(quiet=False):
         )
     except (ConfigRetrievalError,) + HTTP_ERRORS:
         printer('Cannot retrieve speedtest configuration')
-        return sys.maxint
+        return sys.maxsize
 
     printer('Testing from %(isp)s (%(ip)s)...' % speedtest.config['client'],
             quiet)
@@ -1851,17 +1854,16 @@ def shell(quiet=False):
             speedtest.get_servers(servers=args.server, exclude=args.exclude)
         except NoMatchedServers:
             printer('NoMatchedServers', quiet)
-
-            return sys.maxint
+            return sys.maxsize
         except (ServersRetrievalError,) + HTTP_ERRORS:
             printer('Cannot retrieve speedtest server list', quiet)
-            return sys.maxint
+            return sys.maxsize
         except InvalidServerIDType:
             printer(
                 '%s is an invalid server type, must '
                 'be an int' % ', '.join('%s' % s for s in args.server), quiet
             )
-            return sys.maxint
+            return sys.maxsize
         if args.server and len(args.server) == 1:
             printer('Retrieving information for the selected server...', quiet)
         else:
@@ -1876,12 +1878,10 @@ def shell(quiet=False):
             '%(latency)s ms' % results.server)
     return results.ping
 
-def main():
-    ping = shell()
-    while ping > 100 or len(sys.argv) == 1:
-        if (len(sys.argv) == 1):
-            time.sleep(120)
-        ping = shell()
-
 if __name__ == '__main__':
-    main()
+    ping = sys.maxsize
+   
+    while ping > 100 or repeatFlag:
+        ping = shell()
+        if (repeatFlag):
+            time.sleep(120)
