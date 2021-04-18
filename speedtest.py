@@ -1486,20 +1486,22 @@ class Speedtest(object):
             avg = round((sum(cum) / 6) * 1000.0, 3)
             results[avg] = server
 
-        try:
+
+        if len(results) == 0:
+            self.results = None
+            return None
+        else:
             fastest = sorted(results.keys())[0]
-        except IndexError:
-            raise SpeedtestBestServerFailure('Unable to connect to servers to '
-                                             'test latency.')
-        best = results[fastest]
-        best['latency'] = fastest
 
-        self.results.ping = fastest
-        self.results.server = best
+            best = results[fastest]
+            best['latency'] = fastest
 
-        self._best.update(best)
-        printer('Best Server:\n%r' % best, debug=True)
-        return best
+            self.results.ping = fastest
+            self.results.server = best
+
+            self._best.update(best)
+            printer('Best Server:\n%r' % best, debug=True)
+            return best
 
     def download(self, callback=do_nothing, threads=None):
         """Test download speed against speedtest.net
@@ -1874,14 +1876,17 @@ def shell(quiet=False):
 
     results = speedtest.results
 
-    print('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
-            '%(latency)s ms' % results.server)
-    return results.ping
+    if results != None:
+        print('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
+                '%(latency)s ms' % results.server)
+        return results.ping
+    else:
+        return sys.maxsize
 
 if __name__ == '__main__':
     ping = sys.maxsize
    
     while ping > 100 or repeatFlag:
         ping = shell()
-        if (repeatFlag):
-            time.sleep(120)
+        if repeatFlag and ping <= 100:
+            time.sleep(5)
