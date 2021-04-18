@@ -1,7 +1,7 @@
 # Boost bandwidth via speedtest
 Breaks the bandwidth limitation of Far___Tone.
 
-## Enviroment Setup
+## Enviroment Setup for Android 
 1. Install [Termux](https://bit.ly/2SulXt7).
 1. Upgrade packages
 ```bash
@@ -36,3 +36,7 @@ cd boost_bandwidth_via_speedtest && python setup.py install
 speedtest-cli
 ```
 The program will be executed in background.
+
+## Enviroment Setup for Windows
+1. using execution binary (without any addtional steps)
+2. using bat script need set up python env. (minimum python version requirement: 2.4)
