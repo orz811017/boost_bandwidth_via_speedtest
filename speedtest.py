@@ -1883,10 +1883,13 @@ def shell(quiet=False):
     else:
         return sys.maxsize
 
-if __name__ == '__main__':
+def main():
     ping = sys.maxsize
    
     while ping > 100 or repeatFlag:
         ping = shell()
         if repeatFlag and ping <= 100:
             time.sleep(5)
+
+if __name__ == '__main__':
+    main()
