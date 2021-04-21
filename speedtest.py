@@ -1889,7 +1889,7 @@ def main():
     while ping > 100 or repeatFlag:
         ping = shell()
         if repeatFlag and ping <= 100:
-            time.sleep(5)
+            time.sleep(120)
 
 if __name__ == '__main__':
     main()
